@@ -12,6 +12,7 @@
 	<groupId>com.abhicode</groupId>
 	<artifactId>hello</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging> <!-- Add this line -->
 	<name>hello</name>
 	<description>Demo project for Spring Boot</description>
 	<url />
