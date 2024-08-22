@@ -23,8 +23,6 @@ deploy_job:
     echo "deploying the application"
     docker pull abhinav2173/springboot:$CI_COMMIT_SHA
     docker rm -f springboot-example
-    docker run -d -p 8080:8080 -name springboot-example abhinav2173/springboot:$CI_COMMIT_SHA
+    docker run -d -p 8080:8080 --name springboot-example abhinav2173/springboot:$CI_COMMIT_SHA
   tags:
     - ec2-runner
-  only:
-    - deploy-to-ec2
