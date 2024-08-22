@@ -15,7 +15,7 @@ build_job:
     echo "Building the application.."
     docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
     docker build -t abhinav2173/springboot:$CI_COMMIT_SHA .
-    docker push abhinav2173/springboot:$CI_COMMIT_SHA abhinav2173
+    docker push abhinav2173/springboot:$CI_COMMIT_SHA
 
 deploy_job:
   stage: deploy
