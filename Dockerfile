@@ -1,11 +1,14 @@
 # Stage 1: Build with Maven
-FROM maven:3.9.4-openjdk-21 AS build
+FROM eclipse-temurin:21-jdk AS build
+
+# Install Maven
+RUN apt-get update && \
+    apt-get install -y maven
+
+# Set up working directory
 WORKDIR /app
 
-# Install Git (if needed for your project)
-RUN apt-get update && apt-get install -y git
-
-# Copy the pom.xml file and project source code
+# Copy pom.xml and project source code
 COPY pom.xml .
 COPY src ./src
 
