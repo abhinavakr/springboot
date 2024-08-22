@@ -1,5 +1,5 @@
 # Stage 1: Build with Maven
-FROM maven:3.8.1-openjdk-21-slim AS build
+FROM maven:3.9.4-openjdk-21 AS build
 WORKDIR /app
 
 # Install Git (if needed for your project)
