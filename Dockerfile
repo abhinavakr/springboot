@@ -1,5 +1,5 @@
 # Stage 1: Build with Maven
-FROM maven:3.8.1-openjdk-17-slim AS build
+FROM maven:3.8.1-openjdk-21-slim AS build
 WORKDIR /app
 
 # Install Git (if needed for your project)
@@ -13,7 +13,7 @@ COPY . .
 RUN mvn clean package -DskipTests -X
 
 # Stage 2: Create the final image
-FROM eclipse-temurin:17-jdk-alpine
+FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
 
 # Copy the JAR file from the build stage
