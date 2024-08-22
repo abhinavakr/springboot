@@ -1,16 +1,16 @@
 # Stage 1: Build with Maven
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM maven:3.9.4-openjdk-21 AS build
 WORKDIR /app
 
-# Install Maven
-RUN apk add --no-cache maven git
+# Install Git (if needed for your project)
+RUN apt-get update && apt-get install -y git
 
 # Copy the pom.xml file and project source code
 COPY pom.xml .
-COPY . .
+COPY src ./src
 
-# Build the project with verbose output for debugging
-RUN mvn clean package -DskipTests -X
+# Build the project
+RUN mvn clean package -DskipTests
 
 # Stage 2: Create the final image
 FROM eclipse-temurin:21-jdk-alpine
