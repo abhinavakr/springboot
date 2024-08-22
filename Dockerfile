@@ -1,9 +1,9 @@
 # Stage 1: Build with Maven
-FROM maven:3.9.4-openjdk-21 AS build
+FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /app
 
-# Install Git (if needed for your project)
-RUN apt-get update && apt-get install -y git
+# Install Maven
+RUN apk add --no-cache maven git
 
 # Copy the pom.xml file and project source code
 COPY pom.xml .
