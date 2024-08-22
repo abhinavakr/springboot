@@ -20,10 +20,10 @@ FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
 
 # Copy the JAR file from the build stage
-COPY --from=build /app/target/hello.jar .
+COPY --from=build /app/target/hello-0.0.1-SNAPSHOT.jar .
 
 # Expose the port on which the application will run
 EXPOSE 8080
 
 # Command to run the application
-CMD ["java", "-jar", "hello.jar"]
+CMD ["java", "-jar", "hello-0.0.1-SNAPSHOT.jar"]
