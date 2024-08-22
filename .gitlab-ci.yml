@@ -1,0 +1,22 @@
+default:
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  before_script:
+    - docker info
+
+stages:
+ - build
+ - deploy
+
+build_job:
+ stage: build
+ script: |
+  echo "Building the application.."
+  docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+   
+
+deploy_job:
+  stage: deploy
+  script: |
+  echo " deploying the application"
