@@ -3,7 +3,7 @@ FROM maven:3.8.1-openjdk-17-slim as build
 WORKDIR /app
 COPY pom.xml .
 COPY . .
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests -X
 #stages 2: create the final image
 FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
