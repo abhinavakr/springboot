@@ -5,7 +5,7 @@ COPY pom.xml .
 COPY . .
 RUN mvn clean package -Dmaven.test.skip=true
 #stages 2: create the final image
-FROM eclipse-eclipse-temurin:21-jdk-alpine
+FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
 COPY --from=build /app/target/hello.jar .
 EXPOSE 8080
