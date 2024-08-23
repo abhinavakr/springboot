@@ -28,7 +28,7 @@ deploy_job:
     docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
     docker pull abhinav2173/springboot:$CI_COMMIT_SHA
     docker rm -f springboot-example || true
-    docker run -d -p 8080:8080 --name springboot-example abhinav2173/springboot:$CI_COMMIT_SHA
+    docker run -d -p 8081:8080 --name springboot-example abhinav2173/springboot:$CI_COMMIT_SHA
   tags:
     - ec2-runner
 
