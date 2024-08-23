@@ -2,6 +2,6 @@ global:
   scrape_interval: 15s
 
 scrape_configs:
-  - job_name: "springboot-app"
+  - job_name: 'springboot'
     static_configs:
-      - targets: ["localhost:8080"]
+      - targets: ['springboot-app:8080']

@@ -4,26 +4,41 @@ default:
     - docker:24.0.5-dind
   before_script:
     - docker info
+    - docker-compose --version
 
 stages:
   - build
   - deploy
+  - monitor
 
+# Build the application
 build_job:
   stage: build
   script: |
-    echo "Building the application.."
+    echo "Building the application..."
     docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
     docker build -t abhinav2173/springboot:$CI_COMMIT_SHA .
     docker push abhinav2173/springboot:$CI_COMMIT_SHA
 
+# Deploy the application
 deploy_job:
   stage: deploy
   script: |
-    echo "deploying the application"
+    echo "Deploying the application..."
     docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
     docker pull abhinav2173/springboot:$CI_COMMIT_SHA
     docker rm -f springboot-example || true
     docker run -d -p 8080:8080 --name springboot-example abhinav2173/springboot:$CI_COMMIT_SHA
   tags:
     - ec2-runner
+
+# Set up Prometheus and Grafana using Docker Compose
+monitor_job:
+  stage: monitor
+  script:
+    - echo "Setting up monitoring..."
+    - docker-compose -f docker-compose.yml up -d
+  tags:
+    - ec2-runner
+  only:
+    - main # Adjust to the branch you want to deploy from
