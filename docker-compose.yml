@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  springboot-app:
+    image: abhinav2173/springboot:$CI_COMMIT_SHA
+    ports:
+      - "8080:8080"
+    networks:
+      - monitoring
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+
+networks:
+  monitoring:
+    driver: bridge
