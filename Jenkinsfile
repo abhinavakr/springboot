@@ -53,9 +53,9 @@ spec:
   selector:
     app: springboot-app
   ports:
-    - port: 80
+    - port: 8080
       targetPort: 8080
-                    '''
+'''
                 }
             }
         }
@@ -65,6 +65,7 @@ spec:
                 script {
                     echo 'Deploying the application to Kubernetes...'
                     withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
+                        sh 'kubectl config use-context minikube'  // Set Minikube context
                         sh 'kubectl apply -f deployment.yaml --kubeconfig=$KUBECONFIG'
                         sh 'kubectl apply -f service.yaml --kubeconfig=$KUBECONFIG'
                     }
