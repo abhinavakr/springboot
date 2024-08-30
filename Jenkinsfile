@@ -39,6 +39,27 @@ pipeline {
             }
         }
 
+        stage('Create Service YAML') {
+            steps {
+                script {
+                    echo 'Creating service.yaml file...'
+                    writeFile file: 'service.yaml', text: '''
+apiVersion: v1
+kind: Service
+metadata:
+  name: springboot-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: springboot-app
+  ports:
+    - port: 80
+      targetPort: 8080
+                    '''
+                }
+            }
+        }
+
         stage('Deploy to Kubernetes') {
             steps {
                 script {
