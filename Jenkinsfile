@@ -65,9 +65,9 @@ spec:
                 script {
                     echo 'Deploying the application to Kubernetes...'
                     withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
-                        sh 'kubectl config use-context minikube'  // Set Minikube context
-                        sh 'kubectl apply -f deployment.yaml --kubeconfig=$KUBECONFIG'
-                        sh 'kubectl apply -f service.yaml --kubeconfig=$KUBECONFIG'
+                        sh 'kubectl config use-context minikube || { echo "Failed to set Kubernetes context"; exit 1; }'
+                        sh 'kubectl apply -f deployment.yaml --kubeconfig=$KUBECONFIG || { echo "Failed to apply deployment.yaml"; exit 1; }'
+                        sh 'kubectl apply -f service.yaml --kubeconfig=$KUBECONFIG || { echo "Failed to apply service.yaml"; exit 1; }'
                     }
                 }
             }
