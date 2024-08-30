@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'abhinav2173/springboot:latest' // Replace 'latest' with your preferred tag
-        DOCKER_CREDENTIALS_ID = 'dockerhub_id'
-        KUBECONFIG_CREDENTIALS_ID = 'jenkins-secretaa' // Ensure this is correctly quoted
+        DOCKER_IMAGE = 'abhinav2173/springboot:latest'
+        DOCKER_CREDENTIALS_ID = 'dockerhub_id' // Replace with your Docker Hub credentials ID
+        KUBECONFIG_CREDENTIALS_ID = 'jenkins-secretaa' // Replace with your Kubernetes config credentials ID
     }
 
     stages {
@@ -39,6 +39,35 @@ pipeline {
             }
         }
 
+        stage('Create Deployment YAML') {
+            steps {
+                script {
+                    echo 'Creating deployment.yaml file...'
+                    writeFile file: 'deployment.yaml', text: '''
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: springboot-app
+  template:
+    metadata:
+      labels:
+        app: springboot-app
+    spec:
+      containers:
+        - name: springboot-container
+          image: ${DOCKER_IMAGE}
+          ports:
+            - containerPort: 8080
+'''
+                }
+            }
+        }
+
         stage('Create Service YAML') {
             steps {
                 script {
@@ -65,7 +94,7 @@ spec:
                 script {
                     echo 'Deploying the application to Kubernetes...'
                     withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
-                        sh 'kubectl config use-context minikube'  // Set Minikube context
+                        sh 'kubectl config use-context minikube'
                         sh 'kubectl apply -f deployment.yaml --client-certificate=/tmp/client.crt --client-key=/tmp/client.key --certificate-authority=/tmp/ca.crt'
                         sh 'kubectl apply -f service.yaml --client-certificate=/tmp/client.crt --client-key=/tmp/client.key --certificate-authority=/tmp/ca.crt'
                     }
