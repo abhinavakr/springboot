@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'abhinav2173/springboot:tagname'
         DOCKER_CREDENTIALS_ID = 'dockerhub_id'
-        KUBECONFIG_CREDENTIALS_ID = 'kubeconfig_id' // Jenkins credential ID for Kubernetes kubeconfig
+        KUBECONFIG_CREDENTIALS_ID = 'jenkins-secret' // Jenkins credential ID for Kubernetes kubeconfig
     }
     
     stages {
@@ -43,7 +43,7 @@ pipeline {
             steps {
                 script {
                     echo 'Deploying the application to Kubernetes...'
-                    withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
+                    withCredentials([file(credentialsId: "${jenkins-secret}", variable: 'KUBECONFIG')]) {
                         sh 'kubectl apply -f deployment.yaml --kubeconfig=$KUBECONFIG'
                         sh 'kubectl apply -f service.yaml --kubeconfig=$KUBECONFIG'
                     }
