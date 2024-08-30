@@ -20,3 +20,5 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "prod"
+      imagePullSecrets:
+        - name: abhi1234
