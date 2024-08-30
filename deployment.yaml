@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: springboot-app
-          image: abhinav2173/springboot:tagname
+          image: abhinav2173/springboot:latest
           ports:
             - containerPort: 8080
           env:
