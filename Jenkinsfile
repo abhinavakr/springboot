@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'abhinav2173/springboot:latest' // Replace 'latest' with your preferred tag
         DOCKER_CREDENTIALS_ID = 'dockerhub_id'
-        KUBECONFIG_CREDENTIALS_ID = 'jenkins-secret' // Jenkins credential ID for Kubernetes kubeconfig
+        KUBECONFIG_CREDENTIALS_ID = 'jenkin-secretaa' // Updated Jenkins credential ID for Kubernetes kubeconfig
     }
 
     stages {
