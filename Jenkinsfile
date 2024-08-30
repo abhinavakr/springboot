@@ -1,12 +1,12 @@
 pipeline {
     agent any
-    
+
     environment {
-        DOCKER_IMAGE = 'abhinav2173/springboot:tagname'
+        DOCKER_IMAGE = 'abhinav2173/springboot:latest' // Replace 'latest' with your preferred tag
         DOCKER_CREDENTIALS_ID = 'dockerhub_id'
         KUBECONFIG_CREDENTIALS_ID = 'jenkins-secret' // Jenkins credential ID for Kubernetes kubeconfig
     }
-    
+
     stages {
         stage('Build') {
             steps {
@@ -16,7 +16,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Login') {
             steps {
                 script {
@@ -27,7 +27,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Push') {
             steps {
                 script {
@@ -38,19 +38,19 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Deploy to Kubernetes') {
             steps {
                 script {
                     echo 'Deploying the application to Kubernetes...'
-                    withCredentials([file(credentialsId: "${jenkins-secret}", variable: 'KUBECONFIG')]) {
+                    withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
                         sh 'kubectl apply -f deployment.yaml --kubeconfig=$KUBECONFIG'
                         sh 'kubectl apply -f service.yaml --kubeconfig=$KUBECONFIG'
                     }
                 }
             }
         }
-        
+
         stage('Post Actions') {
             steps {
                 script {
@@ -60,7 +60,7 @@ pipeline {
             }
         }
     }
-    
+
     post {
         failure {
             echo 'Pipeline failed!'
