@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'abhinav2173/springboot:latest' // Replace 'latest' with your preferred tag
+        DOCKER_IMAGE = 'abhinav2173/springboot:latest'
         DOCKER_CREDENTIALS_ID = 'dockerhub_id'
-        KUBECONFIG_CREDENTIALS_ID = 'jenkins-secretaa' // Ensure this is correctly quoted
+        KUBECONFIG_CREDENTIALS_ID = 'jenkins-secretaa'
     }
 
     stages {
@@ -22,7 +22,7 @@ pipeline {
                 script {
                     echo 'Logging into Docker Hub...'
                     docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS_ID}") {
-                        // Docker login is handled by this block
+                        // Docker login handled by this block
                     }
                 }
             }
@@ -65,9 +65,11 @@ spec:
                 script {
                     echo 'Deploying the application to Kubernetes...'
                     withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
-                        sh 'kubectl config use-context minikube || { echo "Failed to set Kubernetes context"; exit 1; }'
-                        sh 'kubectl apply -f deployment.yaml --kubeconfig=$KUBECONFIG || { echo "Failed to apply deployment.yaml"; exit 1; }'
-                        sh 'kubectl apply -f service.yaml --kubeconfig=$KUBECONFIG || { echo "Failed to apply service.yaml"; exit 1; }'
+                        sh '''
+                        kubectl config use-context minikube || { echo "Failed to set Kubernetes context"; exit 1; }
+                        kubectl apply -f deployment.yaml --kubeconfig=$KUBECONFIG || { echo "Failed to apply deployment.yaml"; exit 1; }
+                        kubectl apply -f service.yaml --kubeconfig=$KUBECONFIG || { echo "Failed to apply service.yaml"; exit 1; }
+                        '''
                     }
                 }
             }
