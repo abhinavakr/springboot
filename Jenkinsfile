@@ -3,24 +3,11 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'abhinav2173/springboot:latest'
-        DOCKER_CREDENTIALS_ID = 'dockerhub_id'          // Replace with your Docker Hub credentials ID
-        KUBECONFIG_CREDENTIALS_ID = 'kube-client-cert'  // Replace with your Kubernetes config credentials ID
-        GIT_CREDENTIALS_ID = 'your-git-credentials-id'  // Replace with your Git credentials ID, if required
+        DOCKER_CREDENTIALS_ID = 'dockerhub_id' // Replace with your Docker Hub credentials ID
+        KUBECONFIG_CREDENTIALS_ID = 'jenkins-secretaa' // Replace with your Kubernetes config credentials ID
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                script {
-                    echo 'Checking out the source code...'
-                    checkout([$class: 'GitSCM', 
-                        branches: [[name: '*/main']],  // Replace 'main' with your actual branch name if different
-                        userRemoteConfigs: [[url: 'https://github.com/abhinavakr/springboot.git',
-                                             credentialsId: GIT_CREDENTIALS_ID]]])
-                }
-            }
-        }
-
         stage('Build') {
             steps {
                 script {
@@ -30,22 +17,24 @@ pipeline {
             }
         }
 
-        stage('Login to Docker Hub') {
+        stage('Login') {
             steps {
                 script {
                     echo 'Logging into Docker Hub...'
-                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
+                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS_ID}") {
+                        // Docker login is handled by this block
                     }
                 }
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Push') {
             steps {
                 script {
                     echo 'Pushing the Docker image to Docker Hub...'
-                    sh "docker push ${DOCKER_IMAGE}"
+                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS_ID}") {
+                        sh 'docker push ${DOCKER_IMAGE}'
+                    }
                 }
             }
         }
@@ -70,10 +59,10 @@ spec:
         app: springboot-app
     spec:
       containers:
-      - name: springboot-container
-        image: abhinav2173/springboot:latest
-        ports:
-        - containerPort: 8080
+        - name: springboot-container
+          image: ${DOCKER_IMAGE}
+          ports:
+            - containerPort: 8080
 '''
                 }
             }
@@ -93,8 +82,7 @@ spec:
   selector:
     app: springboot-app
   ports:
-    - protocol: TCP
-      port: 80
+    - port: 8080
       targetPort: 8080
 '''
                 }
@@ -105,10 +93,20 @@ spec:
             steps {
                 script {
                     echo 'Deploying the application to Kubernetes...'
-                    withCredentials([file(credentialsId: KUBECONFIG_CREDENTIALS_ID, variable: 'KUBECONFIG')]) {
-                        sh 'kubectl apply -f deployment.yaml'
-                        sh 'kubectl apply -f service.yaml'
+                    withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
+                        sh 'kubectl config use-context minikube'
+                        sh 'kubectl apply -f deployment.yaml --client-certificate=/tmp/client.crt --client-key=/tmp/client.key --certificate-authority=/tmp/ca.crt'
+                        sh 'kubectl apply -f service.yaml --client-certificate=/tmp/client.crt --client-key=/tmp/client.key --certificate-authority=/tmp/ca.crt'
                     }
+                }
+            }
+        }
+
+        stage('Post Actions') {
+            steps {
+                script {
+                    echo 'Cleaning up...'
+                    sh 'docker system prune -af'
                 }
             }
         }
