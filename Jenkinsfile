@@ -5,6 +5,7 @@ pipeline {
         DOCKER_IMAGE = 'abhinav2173/springboot:latest'
         DOCKER_CREDENTIALS_ID = 'dockerhub_id' // Replace with your Docker Hub credentials ID
         KUBECONFIG_CREDENTIALS_ID = 'jenkins-secretaa' // Replace with your Kubernetes config credentials ID
+        SONARQUBE_ENV = 'SonarQube' // Replace with your SonarQube environment name in Jenkins
     }
 
     stages {
@@ -13,6 +14,17 @@ pipeline {
                 script {
                     echo 'Building the Docker image...'
                     sh 'docker build -t ${DOCKER_IMAGE} .'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    echo 'Running SonarQube analysis...'
+                    withSonarQubeEnv("${SONARQUBE_ENV}") {
+                        sh 'mvn sonar:sonar -Dsonar.projectKey=myproject -Dsonar.host.url=http://<your-sonarqube-server>:9000 -Dsonar.login=${SONAR_AUTH_TOKEN}'
+                    }
                 }
             }
         }
