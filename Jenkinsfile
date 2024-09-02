@@ -8,6 +8,12 @@ pipeline {
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/abhinavakr/springboot.git'
+            }
+        }
+
         stage('Build') {
             steps {
                 script {
@@ -21,8 +27,8 @@ pipeline {
             steps {
                 script {
                     echo 'Logging into Docker Hub...'
-                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS_ID}") {
-                        // Docker login is handled by this block
+                    withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin https://index.docker.io/v1/'
                     }
                 }
             }
@@ -43,7 +49,7 @@ pipeline {
             steps {
                 script {
                     echo 'Creating deployment.yaml file...'
-                    writeFile file: 'deployment.yaml', text: '''
+                    writeFile file: 'deployment.yaml', text: """
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -63,7 +69,7 @@ spec:
           image: ${DOCKER_IMAGE}
           ports:
             - containerPort: 8080
-'''
+"""
                 }
             }
         }
@@ -72,7 +78,7 @@ spec:
             steps {
                 script {
                     echo 'Creating service.yaml file...'
-                    writeFile file: 'service.yaml', text: '''
+                    writeFile file: 'service.yaml', text: """
 apiVersion: v1
 kind: Service
 metadata:
@@ -84,7 +90,7 @@ spec:
   ports:
     - port: 8080
       targetPort: 8080
-'''
+"""
                 }
             }
         }
@@ -93,25 +99,10 @@ spec:
             steps {
                 script {
                     echo 'Deploying the application to Kubernetes...'
-                    withCredentials([
-                        file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG'),
-                        file(credentialsId: 'kube-client-cert', variable: 'CLIENT_CERT'),
-                        file(credentialsId: 'kube-client-key', variable: 'CLIENT_KEY'),
-                        file(credentialsId: 'kube-ca-cert', variable: 'CA_CERT')
-                    ]) {
+                    withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
                         sh 'kubectl config use-context minikube'
-                        sh '''
-                            kubectl apply -f deployment.yaml \
-                            --client-certificate=$CLIENT_CERT \
-                            --client-key=$CLIENT_KEY \
-                            --certificate-authority=$CA_CERT
-                        '''
-                        sh '''
-                            kubectl apply -f service.yaml \
-                            --client-certificate=$CLIENT_CERT \
-                            --client-key=$CLIENT_KEY \
-                            --certificate-authority=$CA_CERT
-                        '''
+                        sh 'kubectl apply -f deployment.yaml'
+                        sh 'kubectl apply -f service.yaml'
                     }
                 }
             }
