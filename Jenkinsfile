@@ -93,10 +93,25 @@ spec:
             steps {
                 script {
                     echo 'Deploying the application to Kubernetes...'
-                    withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
+                    withCredentials([
+                        file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG'),
+                        file(credentialsId: 'kube-client-cert', variable: 'CLIENT_CERT'),
+                        file(credentialsId: 'kube-client-key', variable: 'CLIENT_KEY'),
+                        file(credentialsId: 'kube-ca-cert', variable: 'CA_CERT')
+                    ]) {
                         sh 'kubectl config use-context minikube'
-                        sh 'kubectl apply -f deployment.yaml --client-certificate=/tmp/client.crt --client-key=/tmp/client.key --certificate-authority=/tmp/ca.crt'
-                        sh 'kubectl apply -f service.yaml --client-certificate=/tmp/client.crt --client-key=/tmp/client.key --certificate-authority=/tmp/ca.crt'
+                        sh '''
+                            kubectl apply -f deployment.yaml \
+                            --client-certificate=$CLIENT_CERT \
+                            --client-key=$CLIENT_KEY \
+                            --certificate-authority=$CA_CERT
+                        '''
+                        sh '''
+                            kubectl apply -f service.yaml \
+                            --client-certificate=$CLIENT_CERT \
+                            --client-key=$CLIENT_KEY \
+                            --certificate-authority=$CA_CERT
+                        '''
                     }
                 }
             }
