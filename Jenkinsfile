@@ -3,14 +3,21 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'abhinav2173/springboot:latest'
-        DOCKER_CREDENTIALS_ID = 'dockerhub_id' // Replace with your Docker Hub credentials ID
-        KUBECONFIG_CREDENTIALS_ID = 'jenkins-secretaa' // Replace with your Kubernetes config credentials ID
+        DOCKER_CREDENTIALS_ID = 'dockerhub_id'          // Replace with your Docker Hub credentials ID
+        KUBECONFIG_CREDENTIALS_ID = 'kube-client-cert'  // Replace with your Kubernetes config credentials ID
+        GIT_CREDENTIALS_ID = 'your-git-credentials-id'  // Replace with your Git credentials ID, if required
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/abhinavakr/springboot.git'
+                script {
+                    echo 'Checking out the source code...'
+                    checkout([$class: 'GitSCM', 
+                        branches: [[name: '*/main']],  // Replace 'main' with your actual branch name if different
+                        userRemoteConfigs: [[url: 'https://github.com/abhinavakr/springboot.git',
+                                             credentialsId: GIT_CREDENTIALS_ID]]])
+                }
             }
         }
 
@@ -23,24 +30,22 @@ pipeline {
             }
         }
 
-        stage('Login') {
+        stage('Login to Docker Hub') {
             steps {
                 script {
                     echo 'Logging into Docker Hub...'
-                    withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin https://index.docker.io/v1/'
+                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                        sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
                     }
                 }
             }
         }
 
-        stage('Push') {
+        stage('Push Docker Image') {
             steps {
                 script {
                     echo 'Pushing the Docker image to Docker Hub...'
-                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS_ID}") {
-                        sh 'docker push ${DOCKER_IMAGE}'
-                    }
+                    sh "docker push ${DOCKER_IMAGE}"
                 }
             }
         }
@@ -49,7 +54,7 @@ pipeline {
             steps {
                 script {
                     echo 'Creating deployment.yaml file...'
-                    writeFile file: 'deployment.yaml', text: """
+                    writeFile file: 'deployment.yaml', text: '''
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -65,11 +70,11 @@ spec:
         app: springboot-app
     spec:
       containers:
-        - name: springboot-container
-          image: ${DOCKER_IMAGE}
-          ports:
-            - containerPort: 8080
-"""
+      - name: springboot-container
+        image: abhinav2173/springboot:latest
+        ports:
+        - containerPort: 8080
+'''
                 }
             }
         }
@@ -78,7 +83,7 @@ spec:
             steps {
                 script {
                     echo 'Creating service.yaml file...'
-                    writeFile file: 'service.yaml', text: """
+                    writeFile file: 'service.yaml', text: '''
 apiVersion: v1
 kind: Service
 metadata:
@@ -88,9 +93,10 @@ spec:
   selector:
     app: springboot-app
   ports:
-    - port: 8080
+    - protocol: TCP
+      port: 80
       targetPort: 8080
-"""
+'''
                 }
             }
         }
@@ -99,20 +105,10 @@ spec:
             steps {
                 script {
                     echo 'Deploying the application to Kubernetes...'
-                    withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
-                        sh 'kubectl config use-context minikube'
+                    withCredentials([file(credentialsId: KUBECONFIG_CREDENTIALS_ID, variable: 'KUBECONFIG')]) {
                         sh 'kubectl apply -f deployment.yaml'
                         sh 'kubectl apply -f service.yaml'
                     }
-                }
-            }
-        }
-
-        stage('Post Actions') {
-            steps {
-                script {
-                    echo 'Cleaning up...'
-                    sh 'docker system prune -af'
                 }
             }
         }
