@@ -94,9 +94,8 @@ spec:
                 script {
                     echo 'Deploying the application to Kubernetes...'
                     withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
-                        sh 'kubectl config use-context minikube'
-                        sh 'kubectl apply -f deployment.yaml --client-certificate=/tmp/client.crt --client-key=/tmp/client.key --certificate-authority=/tmp/ca.crt'
-                        sh 'kubectl apply -f service.yaml --client-certificate=/tmp/client.crt --client-key=/tmp/client.key --certificate-authority=/tmp/ca.crt'
+                        sh 'kubectl apply -f deployment.yaml'
+                        sh 'kubectl apply -f service.yaml'
                     }
                 }
             }
