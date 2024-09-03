@@ -49,7 +49,7 @@ kind: Deployment
 metadata:
   name: springboot-app
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: springboot-app
