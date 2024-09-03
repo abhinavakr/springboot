@@ -5,7 +5,7 @@ pipeline {
         DOCKER_IMAGE = 'abhinav2173/springboot:latest'
         DOCKER_CREDENTIALS_ID = 'dockerhub_id' // Replace with your Docker Hub credentials ID
         KUBECONFIG_CREDENTIALS_ID = 'jenkins-secretaa' // Replace with your Kubernetes config credentials ID
-        SONARQUBE_ENV = 'sonar-scanner' // Replace with your SonarQube environment name in Jenkins
+        SONARQUBE_ENV = 'sonar' // Replace with your SonarQube environment name in Jenkins
     }
 
     stages {
