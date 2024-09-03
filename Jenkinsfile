@@ -2,10 +2,9 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'abhinav2173/springboot:latest'
+        DOCKER_IMAGE = 'abhinav2173/springboot:latest' // Replace with your Docker image name
         DOCKER_CREDENTIALS_ID = 'dockerhub_id' // Replace with your Docker Hub credentials ID
         KUBECONFIG_CREDENTIALS_ID = 'jenkins-secretaa' // Replace with your Kubernetes config credentials ID
-        SONARQUBE_ENV = 'sonar' // Replace with your SonarQube environment name in Jenkins
     }
 
     stages {
@@ -18,18 +17,7 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    echo 'Running SonarQube analysis...'
-                    withSonarQubeEnv("${SONARQUBE_ENV}") {
-                        sh 'mvn sonar:sonar -Dsonar.projectKey=myproject -Dsonar.host.url=http://48.217.66.124:9000 -Dsonar.login=${SONAR_AUTH_TOKEN}'
-                    }
-                }
-            }
-        }
-
-        stage('Login') {
+        stage('Login to Docker Hub') {
             steps {
                 script {
                     echo 'Logging into Docker Hub...'
@@ -40,7 +28,7 @@ pipeline {
             }
         }
 
-        stage('Push') {
+        stage('Push Docker Image') {
             steps {
                 script {
                     echo 'Pushing the Docker image to Docker Hub...'
@@ -55,7 +43,7 @@ pipeline {
             steps {
                 script {
                     echo 'Creating deployment.yaml file...'
-                    writeFile file: 'deployment.yaml', text: '''
+                    writeFile file: 'deployment.yaml', text: """
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -75,7 +63,7 @@ spec:
           image: ${DOCKER_IMAGE}
           ports:
             - containerPort: 8080
-'''
+"""
                 }
             }
         }
@@ -84,7 +72,7 @@ spec:
             steps {
                 script {
                     echo 'Creating service.yaml file...'
-                    writeFile file: 'service.yaml', text: '''
+                    writeFile file: 'service.yaml', text: """
 apiVersion: v1
 kind: Service
 metadata:
@@ -96,7 +84,7 @@ spec:
   ports:
     - port: 8080
       targetPort: 8080
-'''
+"""
                 }
             }
         }
